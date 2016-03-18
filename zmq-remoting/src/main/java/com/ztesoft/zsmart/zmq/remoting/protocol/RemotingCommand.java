@@ -309,7 +309,8 @@ public class RemotingCommand {
 
     /**
      * protocol 解析: <br>
-     * | length | headlength | headdata | bodydata | 4 | 4 | |
+     * | length | headlength | headdata | bodydata 
+     * | 4      |       4    |          |
      * 
      * @author wang.jun<br>
      * @taskId <br>
@@ -317,7 +318,7 @@ public class RemotingCommand {
      * @return <br>
      */
     public static RemotingCommand decode(final ByteBuffer byteBuffer) {
-        int length = byteBuffer.getInt();
+        int length = byteBuffer.limit();
         
         int headerLength = byteBuffer.getInt();
 
