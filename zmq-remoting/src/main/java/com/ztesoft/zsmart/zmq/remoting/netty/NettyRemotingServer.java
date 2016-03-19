@@ -175,7 +175,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
 		}, 1000 * 3, 1000);
 	}
 
-	public void registerPocessor(int requestCode, NettyRequestProcessor processor, ExecutorService executor) {
+	public void registerProcessor(int requestCode, NettyRequestProcessor processor, ExecutorService executor) {
 		ExecutorService executorThis = executor;
 		if (executor == null) {
 			executorThis = this.publicExecutor;
@@ -250,7 +250,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
 
 		@Override
 		protected void channelRead0(ChannelHandlerContext ctx, RemotingCommand msg) throws Exception {
-			processMessageReceive(ctx, msg);
+			processMessageReceived(ctx, msg);
 
 		}
 	}

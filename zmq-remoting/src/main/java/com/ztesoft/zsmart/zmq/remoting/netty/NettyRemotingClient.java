@@ -43,6 +43,7 @@ import io.netty.channel.ChannelPromise;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -109,7 +110,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
 	class NettyClientHandler extends SimpleChannelInboundHandler<RemotingCommand> {
 		@Override
 		protected void channelRead0(ChannelHandlerContext ctx, RemotingCommand msg) throws Exception {
-			processMessageReceive(ctx, msg);
+			processMessageReceived(ctx, msg);
 		}
 	}
 
@@ -183,7 +184,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
 		super(nettyClientConfig.getClientOnewaySemaphoreValue(), nettyClientConfig.getClientAsyncSemaphoreValue());
 		this.nettyClientConfig = nettyClientConfig;
 		this.channelEventListener = channelEventListener;
-		int publicThreadNums = nettyClientConfig.getClientCallbackExectorThread();
+		int publicThreadNums = nettyClientConfig.getClientCallbackExecutorThreads();
 
 		if (publicThreadNums <= 0) {
 			publicThreadNums = 4;
@@ -220,8 +221,8 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
 						return new Thread(r, "NettyClientWorkerThread_" + threadIndex.incrementAndGet());
 					}
 				});
-		Bootstrap header = this.bootstrap.group(this.eventLoopGroupWorker).option(ChannelOption.TCP_NODELAY, true)
-				.option(ChannelOption.SO_KEEPALIVE, false)
+		Bootstrap header = this.bootstrap.group(this.eventLoopGroupWorker).channel(NioSocketChannel.class)//
+				.option(ChannelOption.TCP_NODELAY, true).option(ChannelOption.SO_KEEPALIVE, false)
 				.option(ChannelOption.SO_SNDBUF, nettyClientConfig.getClientSocketSndBufSize())
 				.option(ChannelOption.SO_RCVBUF, nettyClientConfig.getClientSocketRcvBufSize())
 				.handler(new ChannelInitializer<Channel>() {
@@ -560,29 +561,27 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
 			throw new RemotingConnectException(addr);
 		}
 	}
-	
-    public void invokeAsync(String addr, RemotingCommand request, long timeoutMillis,
-            InvokeCallback invokeCallback) throws InterruptedException, RemotingConnectException,
-            RemotingTooMuchRequestException, RemotingTimeoutException, RemotingSendRequestException {
-        final Channel channel = this.getAndCreateChannel(addr);
-        if (channel != null && channel.isActive()) {
-            try {
-                if (this.rpcHook != null) {
-                    this.rpcHook.doBeforeRequest(addr, request);
-                }
-                this.invokeAsyncImpl(channel, request, timeoutMillis, invokeCallback);
-            }
-            catch (RemotingSendRequestException e) {
-                log.warn("invokeAsync: send request exception, so close the channel[{}]", addr);
-                this.closeChannel(addr, channel);
-                throw e;
-            }
-        }
-        else {
-            this.closeChannel(addr, channel);
-            throw new RemotingConnectException(addr);
-        }
-    }
+
+	public void invokeAsync(String addr, RemotingCommand request, long timeoutMillis, InvokeCallback invokeCallback)
+			throws InterruptedException, RemotingConnectException, RemotingTooMuchRequestException,
+			RemotingTimeoutException, RemotingSendRequestException {
+		final Channel channel = this.getAndCreateChannel(addr);
+		if (channel != null && channel.isActive()) {
+			try {
+				if (this.rpcHook != null) {
+					this.rpcHook.doBeforeRequest(addr, request);
+				}
+				this.invokeAsyncImpl(channel, request, timeoutMillis, invokeCallback);
+			} catch (RemotingSendRequestException e) {
+				log.warn("invokeAsync: send request exception, so close the channel[{}]", addr);
+				this.closeChannel(addr, channel);
+				throw e;
+			}
+		} else {
+			this.closeChannel(addr, channel);
+			throw new RemotingConnectException(addr);
+		}
+	}
 
 	/**
 	 * 
