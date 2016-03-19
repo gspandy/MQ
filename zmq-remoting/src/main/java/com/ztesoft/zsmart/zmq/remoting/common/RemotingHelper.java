@@ -29,7 +29,7 @@ public class RemotingHelper {
 	 * @param e
 	 * @return
 	 */
-	public static String execptionSimpelDesc(final Throwable e) {
+	public static String exceptionSimpleDesc(final Throwable e) {
 		StringBuffer sb = new StringBuffer();
 
 		if (e != null) {
