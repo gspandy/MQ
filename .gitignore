@@ -1,5 +1,6 @@
 zmq-remoting/.classpath
 zmq-remoting/.project
+zmq-remoting/target
 zmq-remoting/.settings/org.eclipse.jdt.core.prefs
 zmq-remoting/target/classes/.gitignore
 zmq-remoting/target/test-classes/.gitignore
