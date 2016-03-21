@@ -1,4 +1,4 @@
-package com.ztesoft.zsmart.mq.zmq.srvutil;
+package com.ztesoft.zsmart.zmq.srvutil;
 
 import java.util.Properties;
 
@@ -18,7 +18,7 @@ import org.apache.commons.cli.ParseException;
  * @taskId <br>
  * @CreateDate 2016年3月21日 <br>
  * @since V7.3<br>
- * @see com.ztesoft.zsmart.mq.zmq.srvutil <br>
+ * @see com.ztesoft.zsmart.zmq.srvutil <br>
  */
 public class ServerUtil {
     
