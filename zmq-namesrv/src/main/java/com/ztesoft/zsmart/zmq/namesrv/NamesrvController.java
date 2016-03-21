@@ -12,6 +12,7 @@ import com.ztesoft.zsmart.zmq.common.ThreadFactoryImpl;
 import com.ztesoft.zsmart.zmq.common.constant.LoggerName;
 import com.ztesoft.zsmart.zmq.common.namesrv.NamesrvConfig;
 import com.ztesoft.zsmart.zmq.namesrv.kvconfig.KVConfigManager;
+import com.ztesoft.zsmart.zmq.namesrv.processor.DefaultRequestProcessor;
 import com.ztesoft.zsmart.zmq.namesrv.routeinfo.BrokerHouseKeepingService;
 import com.ztesoft.zsmart.zmq.namesrv.routeinfo.RouteInfoManager;
 import com.ztesoft.zsmart.zmq.remoting.RemotingServer;
@@ -69,7 +70,7 @@ public class NamesrvController {
         // // 加载KV配置
         this.kvConfigManager.load();
         // 初始化通信层
-        this.remotingServer = new NettyRemotingServer(this.nettyServerConfig);
+        this.remotingServer = new NettyRemotingServer(this.nettyServerConfig, this.brokerHousekeepingService);
 
         // 初始化线程池
         this.remotingExecutor = Executors.newFixedThreadPool(nettyServerConfig.getServerWorkThreads(),
@@ -99,7 +100,7 @@ public class NamesrvController {
     }
     
     public void registerProcessor(){
-        //this.remotingServer.registerDefaultProcessor(new defaultr, executor);
+        this.remotingServer.registerDefaultProcessor(new DefaultRequestProcessor(this), this.remotingExecutor);
     }
     
     public void start(){
