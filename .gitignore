@@ -16,6 +16,12 @@ zmq-srvutil/.settings/org.eclipse.jdt.core.prefs
 zmq-srvutil/target
 zmq-srvutil/target/classes/.gitignore
 zmq-srvutil/target/test-classes/.gitignore
+zmq-namesrv/.classpath
+zmq-namesrv/.project
+zmq-namesrv/.settings/org.eclipse.jdt.core.prefs
+zmq-namesrv/target
+zmq-namesrv/target/classes/.gitignore
+zmq-namesrv/target/test-classes/.gitignore
 target/mvn-eclipse-cache.properties
 *.class
 target/
