@@ -2,6 +2,8 @@ package com.ztesoft.zsmart.zmq.common.filter;
 
 import java.net.URL;
 
+import com.ztesoft.zsmart.zmq.common.protocol.heartbeat.SubscriptionData;
+
 public class FilterAPI {
     public static String simpleClassName(final String className) {
         String simple = className;
