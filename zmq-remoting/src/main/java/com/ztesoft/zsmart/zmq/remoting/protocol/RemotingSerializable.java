@@ -50,6 +50,14 @@ public abstract class RemotingSerializable {
         return JSON.parseObject(json, clazz);
     }
 
+    public byte[] encode() {
+        final String json = this.toJson();
+        if (json != null) {
+            return json.getBytes();
+        }
+        return null;
+    }
+
     public static byte[] encode(final Object obj) {
         final String json = toJson(obj, false);
         if (json != null) {
