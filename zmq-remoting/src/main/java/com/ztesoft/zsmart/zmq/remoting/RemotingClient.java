@@ -1,3 +1,18 @@
+/**
+ * Copyright (C) 2010-2013 Alibaba Group Holding Limited
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.ztesoft.zsmart.zmq.remoting;
 
 import java.util.List;
@@ -10,34 +25,39 @@ import com.ztesoft.zsmart.zmq.remoting.exception.RemotingTooMuchRequestException
 import com.ztesoft.zsmart.zmq.remoting.netty.NettyRequestProcessor;
 import com.ztesoft.zsmart.zmq.remoting.protocol.RemotingCommand;
 
+
 /**
- * 远程通信 Client 接口 <br>
+ * 远程通信，Client接口
  * 
- * @author wang.jun<br>
- * @version 1.0<br>
- * @taskId <br>
- * @CreateDate 2016年3月18日 <br>
- * @since V7.3<br>
- * @see com.ztesoft.zsmart.zmq.remoting <br>
+ * @author shijia.wxr<vintage.wang@gmail.com>
+ * @since 2013-7-13
  */
 public interface RemotingClient extends RemotingService {
+
     public void updateNameServerAddressList(final List<String> addrs);
+
 
     public List<String> getNameServerAddressList();
 
-    public RemotingCommand invokeSync(final String addr, final RemotingCommand request, final long timeoutMillis)
-        throws InterruptedException, RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException;
+
+    public RemotingCommand invokeSync(final String addr, final RemotingCommand request,
+            final long timeoutMillis) throws InterruptedException, RemotingConnectException,
+            RemotingSendRequestException, RemotingTimeoutException;
+
 
     public void invokeAsync(final String addr, final RemotingCommand request, final long timeoutMillis,
-        final InvokeCallback invokeCallback) throws InterruptedException, RemotingConnectException,
-        RemotingSendRequestException, RemotingTimeoutException, RemotingTooMuchRequestException;
+            final InvokeCallback invokeCallback) throws InterruptedException, RemotingConnectException,
+            RemotingTooMuchRequestException, RemotingTimeoutException, RemotingSendRequestException;
+
 
     public void invokeOneway(final String addr, final RemotingCommand request, final long timeoutMillis)
-        throws InterruptedException, RemotingConnectException, RemotingTooMuchRequestException,
-        RemotingTimeoutException, RemotingSendRequestException;
+            throws InterruptedException, RemotingConnectException, RemotingTooMuchRequestException,
+            RemotingTimeoutException, RemotingSendRequestException;
+
 
     public void registerProcessor(final int requestCode, final NettyRequestProcessor processor,
-        final ExecutorService executor);
+            final ExecutorService executor);
+
 
     public boolean isChannelWriteable(final String addr);
 }

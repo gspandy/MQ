@@ -1,8 +1,14 @@
 zmq-remoting/.classpath
 zmq-remoting/.project
+zmq-remoting/target
 zmq-remoting/.settings/org.eclipse.jdt.core.prefs
 zmq-remoting/target/classes/.gitignore
 zmq-remoting/target/test-classes/.gitignore
+zmq-common/.classpath
+zmq-common/.project
+zmq-common/.settings/org.eclipse.jdt.core.prefs
+zmq-common/target/classes/.gitignore
+zmq-common/target/test-classes/.gitignore
 target/mvn-eclipse-cache.properties
 *.class
 target/
