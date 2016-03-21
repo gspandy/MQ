@@ -88,7 +88,7 @@ public abstract class NettyRemotingAbstract {
 
 		@Override
 		public String getServiceName() {
-			return nettyEventExecuter.getClass().getSimpleName();
+			return NettyEventExecuter.class.getSimpleName();
 		}
 	}
 
@@ -228,7 +228,7 @@ public abstract class NettyRemotingAbstract {
 
 	abstract public ExecutorService getCallbackExecutor();
 
-	public void processMessageReceive(ChannelHandlerContext ctx, RemotingCommand msg) {
+	public void processMessageReceived(ChannelHandlerContext ctx, RemotingCommand msg) {
 		final RemotingCommand cmd = msg;
 
 		if (cmd != null) {
@@ -245,7 +245,7 @@ public abstract class NettyRemotingAbstract {
 		}
 	}
 
-	public void scanResponseType() {
+	public void scanResponseTable() {
 		Iterator<Entry<Integer, ResponseFuture>> it = this.responseTable.entrySet().iterator();
 
 		while (it.hasNext()) {

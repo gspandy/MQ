@@ -2,105 +2,110 @@ package com.ztesoft.zsmart.zmq.remoting.netty;
 
 public class NettyClientConfig {
 
-	/**
-	 * Worker thread number
-	 */
-	private int clientWorkerThreads = 4;
-	private int clinetCallbackExectorThread = Runtime.getRuntime().availableProcessors();
-	private int clientOnewaySemaphoreValue = NettySystemConfig.ClientOnewaySemaphoreValue;
-	private int clientAsyncSemaphoreValue = NettySystemConfig.ClientAsyncSemaphoreValue;
-	private long connectTimeoutMillis = 3000;
-	private long channelNotActiveInterval = 1000 * 60;
+    /**
+     * Worker thread number
+     */
+    private int clientWorkerThreads = 4;
 
-	/**
-	 * IdleStateEvent will be triggered when neither read nor write was
-	 * performed for the specified period of this time. Specify {@code 0} to
-	 * disable
-	 */
-	private int clientChannelMaxIdleTimeSeconds = 120;
+    private int clientCallbackExecutorThread = Runtime.getRuntime().availableProcessors();
 
-	private int clientSocketSndBufSize = NettySystemConfig.SocketSndbufSize;
-	private int clientSocketRcvBufSize = NettySystemConfig.SocketRcvbufSize;
+    private int clientOnewaySemaphoreValue = NettySystemConfig.ClientOnewaySemaphoreValue;
 
-	private boolean clientPooledByteBufAllocatorEnable = false;
+    private int clientAsyncSemaphoreValue = NettySystemConfig.ClientAsyncSemaphoreValue;
 
-	public int getClientWorkerThreads() {
-		return clientWorkerThreads;
-	}
+    private long connectTimeoutMillis = 3000;
 
-	public void setClientWorkerThreads(int clientWorkerThreads) {
-		this.clientWorkerThreads = clientWorkerThreads;
-	}
+    private long channelNotActiveInterval = 1000 * 60;
 
-	public int getClinetCallbackExectorThread() {
-		return clinetCallbackExectorThread;
-	}
+    /**
+     * IdleStateEvent will be triggered when neither read nor write was performed for the specified period of this time.
+     * Specify {@code 0} to disable
+     */
+    private int clientChannelMaxIdleTimeSeconds = 120;
 
-	public void setClinetCallbackExectorThread(int clinetCallbackExectorThread) {
-		this.clinetCallbackExectorThread = clinetCallbackExectorThread;
-	}
+    private int clientSocketSndBufSize = NettySystemConfig.SocketSndbufSize;
 
-	public int getClientOnewaySemaphoreValue() {
-		return clientOnewaySemaphoreValue;
-	}
+    private int clientSocketRcvBufSize = NettySystemConfig.SocketRcvbufSize;
 
-	public void setClientOnewaySemaphoreValue(int clientOnewaySemaphoreValue) {
-		this.clientOnewaySemaphoreValue = clientOnewaySemaphoreValue;
-	}
+    private boolean clientPooledByteBufAllocatorEnable = false;
 
-	public int getClientAsyncSemaphoreValue() {
-		return clientAsyncSemaphoreValue;
-	}
+    public int getClientWorkerThreads() {
+        return clientWorkerThreads;
+    }
 
-	public void setClientAsyncSemaphoreValue(int clientAsyncSemaphoreValue) {
-		this.clientAsyncSemaphoreValue = clientAsyncSemaphoreValue;
-	}
+    public void setClientWorkerThreads(int clientWorkerThreads) {
+        this.clientWorkerThreads = clientWorkerThreads;
+    }
 
-	public long getConnectTimeoutMillis() {
-		return connectTimeoutMillis;
-	}
+    public int getClientCallbackExecutorThread() {
+        return clientCallbackExecutorThread;
+    }
 
-	public void setConnectTimeoutMillis(long connectTimeoutMillis) {
-		this.connectTimeoutMillis = connectTimeoutMillis;
-	}
+    public void setClientCallbackExecutorThread(int clientCallbackExecutorThread) {
+        this.clientCallbackExecutorThread = clientCallbackExecutorThread;
+    }
 
-	public long getChannelNotActiveInterval() {
-		return channelNotActiveInterval;
-	}
+    public int getClientOnewaySemaphoreValue() {
+        return clientOnewaySemaphoreValue;
+    }
 
-	public void setChannelNotActiveInterval(long channelNotActiveInterval) {
-		this.channelNotActiveInterval = channelNotActiveInterval;
-	}
+    public void setClientOnewaySemaphoreValue(int clientOnewaySemaphoreValue) {
+        this.clientOnewaySemaphoreValue = clientOnewaySemaphoreValue;
+    }
 
-	public int getClientChannelMaxIdleTimeSeconds() {
-		return clientChannelMaxIdleTimeSeconds;
-	}
+    public int getClientAsyncSemaphoreValue() {
+        return clientAsyncSemaphoreValue;
+    }
 
-	public void setClientChannelMaxIdleTimeSeconds(int clientChannelMaxIdleTimeSeconds) {
-		this.clientChannelMaxIdleTimeSeconds = clientChannelMaxIdleTimeSeconds;
-	}
+    public void setClientAsyncSemaphoreValue(int clientAsyncSemaphoreValue) {
+        this.clientAsyncSemaphoreValue = clientAsyncSemaphoreValue;
+    }
 
-	public int getClientSocketSndBufSize() {
-		return clientSocketSndBufSize;
-	}
+    public long getConnectTimeoutMillis() {
+        return connectTimeoutMillis;
+    }
 
-	public void setClientSocketSndBufSize(int clientSocketSndBufSize) {
-		this.clientSocketSndBufSize = clientSocketSndBufSize;
-	}
+    public void setConnectTimeoutMillis(long connectTimeoutMillis) {
+        this.connectTimeoutMillis = connectTimeoutMillis;
+    }
 
-	public int getClientSocketRcvBufSize() {
-		return clientSocketRcvBufSize;
-	}
+    public long getChannelNotActiveInterval() {
+        return channelNotActiveInterval;
+    }
 
-	public void setClientSocketRcvBufSize(int clientSocketRcvBufSize) {
-		this.clientSocketRcvBufSize = clientSocketRcvBufSize;
-	}
+    public void setChannelNotActiveInterval(long channelNotActiveInterval) {
+        this.channelNotActiveInterval = channelNotActiveInterval;
+    }
 
-	public boolean isClientPooledByteBufAllocatorEnable() {
-		return clientPooledByteBufAllocatorEnable;
-	}
+    public int getClientChannelMaxIdleTimeSeconds() {
+        return clientChannelMaxIdleTimeSeconds;
+    }
 
-	public void setClientPooledByteBufAllocatorEnable(boolean clientPooledByteBufAllocatorEnable) {
-		this.clientPooledByteBufAllocatorEnable = clientPooledByteBufAllocatorEnable;
-	}
+    public void setClientChannelMaxIdleTimeSeconds(int clientChannelMaxIdleTimeSeconds) {
+        this.clientChannelMaxIdleTimeSeconds = clientChannelMaxIdleTimeSeconds;
+    }
+
+    public int getClientSocketSndBufSize() {
+        return clientSocketSndBufSize;
+    }
+
+    public void setClientSocketSndBufSize(int clientSocketSndBufSize) {
+        this.clientSocketSndBufSize = clientSocketSndBufSize;
+    }
+
+    public int getClientSocketRcvBufSize() {
+        return clientSocketRcvBufSize;
+    }
+
+    public void setClientSocketRcvBufSize(int clientSocketRcvBufSize) {
+        this.clientSocketRcvBufSize = clientSocketRcvBufSize;
+    }
+
+    public boolean isClientPooledByteBufAllocatorEnable() {
+        return clientPooledByteBufAllocatorEnable;
+    }
+
+    public void setClientPooledByteBufAllocatorEnable(boolean clientPooledByteBufAllocatorEnable) {
+        this.clientPooledByteBufAllocatorEnable = clientPooledByteBufAllocatorEnable;
+    }
 }

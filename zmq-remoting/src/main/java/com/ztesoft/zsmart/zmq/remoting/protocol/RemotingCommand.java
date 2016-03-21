@@ -318,7 +318,7 @@ public class RemotingCommand {
      */
     public static RemotingCommand decode(final ByteBuffer byteBuffer) {
         int length = byteBuffer.limit();
-        
+
         int headerLength = byteBuffer.getInt();
 
         byte[] headerData = new byte[headerLength];
