@@ -88,7 +88,7 @@ public abstract class NettyRemotingAbstract {
 
 		@Override
 		public String getServiceName() {
-			return nettyEventExecuter.getClass().getSimpleName();
+			return NettyEventExecuter.class.getSimpleName();
 		}
 	}
 
