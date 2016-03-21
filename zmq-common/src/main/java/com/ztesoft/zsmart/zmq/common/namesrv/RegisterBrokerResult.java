@@ -1,5 +1,7 @@
 package com.ztesoft.zsmart.zmq.common.namesrv;
 
+import com.ztesoft.zsmart.zmq.common.protocol.body.KVTable;
+
 
 
 /**
