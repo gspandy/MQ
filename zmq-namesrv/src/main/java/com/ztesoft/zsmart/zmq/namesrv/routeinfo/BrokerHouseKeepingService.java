@@ -12,33 +12,29 @@ import com.ztesoft.zsmart.zmq.remoting.ChannelEventListener;
 public class BrokerHouseKeepingService implements ChannelEventListener {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.NamesrvLoggerName);
 
-    //private final NamesrvController namesrvController;
+    private final NamesrvController namesrvController;
 
-    public BrokerHousekeepingService(NamesrvController namesrvController) {
-      //  this.namesrvController = namesrvController;
+    public BrokerHouseKeepingService(NamesrvController namesrvController) {
+        this.namesrvController = namesrvController;
     }
 
     @Override
     public void onChannelConnect(String remoteAddr, Channel channel) {
-
     }
 
     @Override
     public void onChannelClose(String remoteAddr, Channel channel) {
-        
-
+        this.namesrvController.getRouteInfoManager().onChannelDestroy(remoteAddr, channel);
     }
 
     @Override
     public void onChannelException(String remoteAddr, Channel channel) {
-        // TODO Auto-generated method stub
-
+        this.namesrvController.getRouteInfoManager().onChannelDestroy(remoteAddr, channel);
     }
 
     @Override
     public void onChannelIdle(String remoteAddr, Channel channel) {
-        // TODO Auto-generated method stub
-
+        this.namesrvController.getRouteInfoManager().onChannelDestroy(remoteAddr, channel);
     }
 
 }
