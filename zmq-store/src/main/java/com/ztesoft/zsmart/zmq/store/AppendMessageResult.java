@@ -34,7 +34,7 @@ public class AppendMessageResult {
 		this.logicsOffset = logicsOffset;
 	}
 
-	public boolean isOK() {
+	public boolean isOk() {
 		return this.status == AppendMessageStatus.PUT_OK;
 	}
 
