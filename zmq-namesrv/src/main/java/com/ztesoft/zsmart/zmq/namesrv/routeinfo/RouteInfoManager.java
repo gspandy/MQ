@@ -152,7 +152,7 @@ public class RouteInfoManager {
 
                 // 更新集群信息
                 Set<String> brokerNames = this.clusterAddrTable.get(clusterName);
-                if (brokerName == null) {
+                if (brokerNames == null) {
                     brokerNames = new HashSet<String>();
                     this.clusterAddrTable.put(clusterName, brokerNames);
                 }
