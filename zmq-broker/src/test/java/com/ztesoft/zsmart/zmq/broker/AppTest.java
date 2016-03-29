@@ -1,4 +1,4 @@
-package com.ztesoft.zsmart.mq.zmq.namesrv;
+package com.ztesoft.zsmart.zmq.broker;
 
 import junit.framework.Test;
 import junit.framework.TestCase;

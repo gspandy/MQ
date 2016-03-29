@@ -48,7 +48,7 @@ public class MixAll {
 
     public static final long MASTER_ID = 0L;
     
-    // http://jmenv.ztesoft.com:8080/rocketmq/nsaddr
+    // http://jmenv.ztesoft.com:8080/zmq/nsaddr
     public static final String WS_ADDR = "http://" + WS_DOMAIN_NAME + ":8080/zmq/" + WS_DOMAIN_SUBGROUP;
     public static final String DEFAULT_TOPIC = "TBW102";
     public static final String BENCHMARK_TOPIC = "BenchmarkTest";

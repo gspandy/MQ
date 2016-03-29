@@ -213,6 +213,7 @@ public class CommitLog {
             this.mapedFileQueue.truncateDirtyFiles(processOffset);
         }
     }
+<<<<<<< HEAD
     
     public  void mian(String[] args){
     	System.out.println(CommitLog.this.BlankMagicCode);
@@ -1310,6 +1311,9 @@ public class CommitLog {
 
         log.info("removeQueurFromTopicQueueTable OK Topic: {} QueueId: {}", topic, queueId);
     }
+=======
+
+>>>>>>> refs/remotes/origin/master
 
     public DispatchRequest checkMessageAndReturnSize(java.nio.ByteBuffer byteBuffer, final boolean checkCRC) {
         return this.checkMessageAndReturnSize(byteBuffer, checkCRC, true);

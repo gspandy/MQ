@@ -10,7 +10,7 @@ import com.ztesoft.zsmart.zmq.remoting.protocol.RemotingSerializable;
  * @author J.Wang
  *
  */
-public class DelayOffsetSerializeWraper extends RemotingSerializable {
+public class DelayOffsetSerializeWrapper extends RemotingSerializable {
 	private ConcurrentHashMap<Integer /* level */, Long /* offset */> offsetTable = new ConcurrentHashMap<Integer, Long>(
 			32);
 
