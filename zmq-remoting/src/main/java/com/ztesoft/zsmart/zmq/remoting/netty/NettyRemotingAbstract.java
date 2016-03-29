@@ -83,6 +83,38 @@ public abstract class NettyRemotingAbstract {
 		@Override
 		public void run() {
 			plog.info(this.getServiceName() + " server started");
+			
+			 final ChannelEventListener listener = NettyRemotingAbstract.this.getChannelEventListener();
+
+	            while (!this.isStoped()) {
+	                try {
+	                    NettyEvent event = this.eventQueue.poll(3000, TimeUnit.MILLISECONDS);
+	                    if (event != null && listener != null) {
+	                        switch (event.getType()) {
+	                        case IDLE:
+	                            listener.onChannelIdle(event.getRemoteAddr(), event.getChannel());
+	                            break;
+	                        case CLOSE:
+	                            listener.onChannelClose(event.getRemoteAddr(), event.getChannel());
+	                            break;
+	                        case CONNECT:
+	                            listener.onChannelConnect(event.getRemoteAddr(), event.getChannel());
+	                            break;
+	                        case EXCEPTION:
+	                            listener.onChannelException(event.getRemoteAddr(), event.getChannel());
+	                            break;
+	                        default:
+	                            break;
+
+	                        }
+	                    }
+	                }
+	                catch (Exception e) {
+	                    plog.warn(this.getServiceName() + " service has exception. ", e);
+	                }
+	            }
+
+	            plog.info(this.getServiceName() + " service end");
 
 		}
 

@@ -4,6 +4,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.ztesoft.zsmart.zmq.client.exception.MQClientException;
+import com.ztesoft.zsmart.zmq.client.producer.DefaultMQProducer;
 import com.ztesoft.zsmart.zmq.common.MixAll;
 import com.ztesoft.zsmart.zmq.common.UtilAll;
 import com.ztesoft.zsmart.zmq.common.message.Message;

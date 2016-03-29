@@ -12,7 +12,7 @@ import com.ztesoft.zsmart.zmq.remoting.exception.RemotingException;
 public interface MQProducer extends MQAdmin {
     void start() throws MQClientException;
 
-    void shtudown();
+    void shutdown();
 
     List<MessageQueue> fetchPublishMessageQueues(final String topic) throws MQClientException;
 
