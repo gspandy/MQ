@@ -19,10 +19,14 @@ import com.ztesoft.zsmart.zmq.common.protocol.body.TopicConfigSerializeWrapper;
 import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.DeleteKVConfigRequestHeader;
 import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.GetKVConfigRequestHeader;
 import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.GetKVConfigResponseHeader;
+import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.GetRouteInfoRequestHeader;
 import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.PutKVConfigRequestHeader;
 import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.RegisterBrokerRequestHeader;
 import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.RegisterBrokerResponseHeader;
 import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.UnRegisterBrokerRequestHeader;
+import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.WipeWritePermOfBrokerRequestHeader;
+import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.WipeWritePermOfBrokerResponseHeader;
+import com.ztesoft.zsmart.zmq.common.protocol.route.TopicRouteData;
 import com.ztesoft.zsmart.zmq.namesrv.NamesrvController;
 import com.ztesoft.zsmart.zmq.remoting.common.RemotingHelper;
 import com.ztesoft.zsmart.zmq.remoting.exception.RemotingCommandException;
@@ -63,13 +67,104 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
                 else {
                     return this.registerBroker(ctx, request);
                 }
-            case RequestCode.UNREGISTER_BROKER :
-                return this.unregisterBroker(ctx,request); // Namesrv 卸载一个Broker，数据都是持久化的
+            case RequestCode.UNREGISTER_BROKER:
+                return this.unregisterBroker(ctx, request); // Namesrv 卸载一个Broker，数据都是持久化的
+            case RequestCode.GET_ROUTEINTO_BY_TOPIC: // Namesrv 根据Topic获取Broker Name、队列数(包含读队列与写队列)
+                return this.getRouteInfoByTopic(ctx, request);
+            case RequestCode.GET_BROKER_CLUSTER_INFO:
+                return this.getBrokerClusterInfo(ctx, request); // Namesrv 获取注册到Name Server的所有Broker集群信息
+            case RequestCode.WIPE_WRITE_PERM_OF_BROKER:
+                return this.wipeWritePermOfBroker(ctx, request);
             default:
                 break;
         }
 
         return null;
+    }
+
+    /**
+     * Description: <br>
+     * 
+     * @author wang.jun<br>
+     * @taskId <br>
+     * @param ctx
+     * @param request
+     * @return <br>
+     * @throws RemotingCommandException
+     */
+    private RemotingCommand wipeWritePermOfBroker(ChannelHandlerContext ctx, RemotingCommand request)
+        throws RemotingCommandException {
+        final RemotingCommand response = RemotingCommand
+            .createResponseCommand(WipeWritePermOfBrokerResponseHeader.class);
+        final WipeWritePermOfBrokerResponseHeader responseHeader = (WipeWritePermOfBrokerResponseHeader) response
+            .readCustomHeader();
+        final WipeWritePermOfBrokerRequestHeader requestHeader = (WipeWritePermOfBrokerRequestHeader) request
+            .decodeCommandCustomHeader(WipeWritePermOfBrokerRequestHeader.class);
+
+        int wipeTopicCnt = this.namesrvController.getRouteInfoManager().wipeWritePermOfBrokerByLock(
+            requestHeader.getBrokerName());
+
+        log.info("wipe write perm of broker[{}], client: {}, {}", //
+            requestHeader.getBrokerName(), //
+            RemotingHelper.parseChannelRemoteAddr(ctx.channel()), //
+            wipeTopicCnt);
+
+        responseHeader.setWipeTopicCount(wipeTopicCnt);
+        response.setCode(ResponseCode.SUCCESS);
+        response.setRemark(null);
+        return response;
+    }
+
+    /**
+     * // Namesrv 获取注册到Name Server的所有Broker集群信息: <br>
+     * 
+     * @author wang.jun<br>
+     * @taskId <br>
+     * @param ctx
+     * @param request
+     * @return <br>
+     */
+    private RemotingCommand getBrokerClusterInfo(ChannelHandlerContext ctx, RemotingCommand request) {
+        final RemotingCommand response = RemotingCommand.createResponseCommand(null);
+
+        byte[] content = this.namesrvController.getRouteInfoManager().getAllClusterInfo();
+        response.setBody(content);
+        response.setCode(ResponseCode.SUCCESS);
+        response.setRemark(null);
+        return response;
+    }
+
+    /**
+     * Namesrv 根据Topic获取Broker Name、队列数(包含读队列与写队列): <br>
+     * 
+     * @author wang.jun<br>
+     * @taskId <br>
+     * @param ctx
+     * @param request
+     * @return <br>
+     * @throws RemotingCommandException
+     */
+    private RemotingCommand getRouteInfoByTopic(ChannelHandlerContext ctx, RemotingCommand request)
+        throws RemotingCommandException {
+        final RemotingCommand response = RemotingCommand.createResponseCommand(null);
+        final GetRouteInfoRequestHeader requestHeader = (GetRouteInfoRequestHeader) request
+            .decodeCommandCustomHeader(GetRouteInfoRequestHeader.class);
+
+        TopicRouteData topicRouteData = this.namesrvController.getRouteInfoManager().pickupTopicRouteData(
+            requestHeader.getTopic());
+
+        if (topicRouteData != null) {
+            String orderTopicConf = this.namesrvController.getKvConfigManager().getKVConfig(
+                NamesrvUtil.NAMESPACE_ORDER_TOPIC_CONFIG, requestHeader.getTopic());
+
+            topicRouteData.setOrderTopicConf(orderTopicConf);
+            byte[] content = topicRouteData.encode();
+            response.setBody(content);
+            response.setCode(ResponseCode.SUCCESS);
+            response.setRemark(null);
+        }
+
+        return response;
     }
 
     /**
@@ -95,14 +190,13 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
             requestHeader.getBrokerId());
         response.setCode(ResponseCode.SUCCESS);
         response.setRemark(null);
-        
+
         return response;
     }
 
     /**
+     * 在NameSrv注册 broker: <br>
      * 
-     * 在NameSrv注册 broker: <br> 
-     *  
      * @author wang.jun<br>
      * @taskId <br>
      * @param ctx
