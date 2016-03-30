@@ -22,6 +22,7 @@ import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.GetKVConfigResponse
 import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.PutKVConfigRequestHeader;
 import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.RegisterBrokerRequestHeader;
 import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.RegisterBrokerResponseHeader;
+import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.UnRegisterBrokerRequestHeader;
 import com.ztesoft.zsmart.zmq.namesrv.NamesrvController;
 import com.ztesoft.zsmart.zmq.remoting.common.RemotingHelper;
 import com.ztesoft.zsmart.zmq.remoting.exception.RemotingCommandException;
@@ -62,7 +63,8 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
                 else {
                     return this.registerBroker(ctx, request);
                 }
-
+            case RequestCode.UNREGISTER_BROKER :
+                return this.unregisterBroker(ctx,request); // Namesrv 卸载一个Broker，数据都是持久化的
             default:
                 break;
         }
@@ -70,6 +72,44 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
         return null;
     }
 
+    /**
+     * 从Namesrv 卸载broker: <br>
+     * 
+     * @author wang.jun<br>
+     * @taskId <br>
+     * @param ctx
+     * @param request
+     * @return <br>
+     * @throws RemotingCommandException
+     */
+    private RemotingCommand unregisterBroker(ChannelHandlerContext ctx, RemotingCommand request)
+        throws RemotingCommandException {
+        final RemotingCommand response = RemotingCommand.createResponseCommand(null);
+        final UnRegisterBrokerRequestHeader requestHeader = (UnRegisterBrokerRequestHeader) request
+            .decodeCommandCustomHeader(UnRegisterBrokerRequestHeader.class);
+
+        this.namesrvController.getRouteInfoManager().unregisterBroker(//
+            requestHeader.getClusterName(),//
+            requestHeader.getBrokerAddr(),//
+            requestHeader.getBrokerName(),//
+            requestHeader.getBrokerId());
+        response.setCode(ResponseCode.SUCCESS);
+        response.setRemark(null);
+        
+        return response;
+    }
+
+    /**
+     * 
+     * 在NameSrv注册 broker: <br> 
+     *  
+     * @author wang.jun<br>
+     * @taskId <br>
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException <br>
+     */
     private RemotingCommand registerBroker(ChannelHandlerContext ctx, RemotingCommand request)
         throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(RegisterBrokerResponseHeader.class);
