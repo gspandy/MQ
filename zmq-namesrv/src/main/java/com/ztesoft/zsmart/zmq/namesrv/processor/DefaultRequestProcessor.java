@@ -17,9 +17,12 @@ import com.ztesoft.zsmart.zmq.common.protocol.ResponseCode;
 import com.ztesoft.zsmart.zmq.common.protocol.body.RegisterBrokerBody;
 import com.ztesoft.zsmart.zmq.common.protocol.body.TopicConfigSerializeWrapper;
 import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.DeleteKVConfigRequestHeader;
+import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.DeleteTopicInNamesrvRequestHeader;
 import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.GetKVConfigRequestHeader;
 import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.GetKVConfigResponseHeader;
+import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.GetKVListByNamespaceRequestHeader;
 import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.GetRouteInfoRequestHeader;
+import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.GetTopicsByClusterRequestHeader;
 import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.PutKVConfigRequestHeader;
 import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.RegisterBrokerRequestHeader;
 import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.RegisterBrokerResponseHeader;
@@ -75,11 +78,273 @@ public class DefaultRequestProcessor implements NettyRequestProcessor {
                 return this.getBrokerClusterInfo(ctx, request); // Namesrv 获取注册到Name Server的所有Broker集群信息
             case RequestCode.WIPE_WRITE_PERM_OF_BROKER:
                 return this.wipeWritePermOfBroker(ctx, request);
+            case RequestCode.GET_ALL_TOPIC_LIST_FROM_NAMESERVER:
+                return this.getAllTopicListFromNameserver(ctx, request); // 从Name Server获取完整Topic列表
+            case RequestCode.DELETE_TOPIC_IN_NAMESRV:
+                return this.deleteTopicInNamesrv(ctx, request);// 从Namesrv删除Topic配置
+            case RequestCode.GET_KV_CONFIG_BY_VALUE:
+                return this.getKVConfigByValue(ctx, request); // Namesrv 通过 project 获取所有的 server ip 信息
+            case RequestCode.DELETE_KV_CONFIG_BY_VALUE:
+                return deleteKVConfigByValue(ctx, request);
+            case RequestCode.GET_KVLIST_BY_NAMESPACE:
+                return this.getKVListByNamespace(ctx, request);
+            case RequestCode.GET_TOPICS_BY_CLUSTER:
+                return this.getTopicsByCluster(ctx, request); // 获取指定集群下的所有 topic
+            case RequestCode.GET_SYSTEM_TOPIC_LIST_FROM_NS:
+                return this.getSystemTopicListFromNs(ctx, request);// 获取所有系统内置 Topic 列表
+            case RequestCode.GET_UNIT_TOPIC_LIST:// 单元化相关 topic
+                return this.getUnitTopicList(ctx, request);
+            case RequestCode.GET_HAS_UNIT_SUB_TOPIC_LIST: // 获取含有单元化订阅组的 Topic 列表
+                return this.getHasUnitSubTopicList(ctx, request);
+            case RequestCode.GET_HAS_UNIT_SUB_UNUNIT_TOPIC_LIST:
+                return this.getHasUnitSubUnUnitTopicList(ctx, request);
+
             default:
                 break;
         }
 
         return null;
+    }
+
+    /**
+     * 获取含有单元化订阅组的 Topic 列表 Description: <br>
+     * 
+     * @author wang.jun<br>
+     * @taskId <br>
+     * @param ctx
+     * @param request
+     * @return <br>
+     */
+    private RemotingCommand getHasUnitSubTopicList(ChannelHandlerContext ctx, RemotingCommand request) {
+
+        final RemotingCommand response = RemotingCommand.createResponseCommand(null);
+
+        byte[] body = this.namesrvController.getRouteInfoManager().getHasUnitSubTopicList();
+
+        response.setBody(body);
+        response.setCode(ResponseCode.SUCCESS);
+        response.setRemark(null);
+        return response;
+    }
+
+    /**
+     * 获取含有单元化订阅组的非单元化 Topic 列表
+     * 
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException
+     */
+    private RemotingCommand getHasUnitSubUnUnitTopicList(ChannelHandlerContext ctx, RemotingCommand request)
+        throws RemotingCommandException {
+        final RemotingCommand response = RemotingCommand.createResponseCommand(null);
+
+        byte[] body = this.namesrvController.getRouteInfoManager().getHasUnitSubUnUnitTopicList();
+
+        response.setBody(body);
+        response.setCode(ResponseCode.SUCCESS);
+        response.setRemark(null);
+        return response;
+    }
+
+    /**
+     * 单元化相关 topic: <br>
+     * 
+     * @author wang.jun<br>
+     * @taskId <br>
+     * @param ctx
+     * @param request
+     * @return <br>
+     */
+    private RemotingCommand getUnitTopicList(ChannelHandlerContext ctx, RemotingCommand request) {
+        final RemotingCommand response = RemotingCommand.createResponseCommand(null);
+
+        byte[] body = this.namesrvController.getRouteInfoManager().getUnitTopics();
+
+        response.setBody(body);
+        response.setCode(ResponseCode.SUCCESS);
+        response.setRemark(null);
+        return response;
+    }
+
+    /**
+     * // 获取所有系统内置 Topic 列表: <br>
+     * 
+     * @author wang.jun<br>
+     * @taskId <br>
+     * @param ctx
+     * @param request
+     * @return <br>
+     */
+    private RemotingCommand getSystemTopicListFromNs(ChannelHandlerContext ctx, RemotingCommand request) {
+        final RemotingCommand response = RemotingCommand.createResponseCommand(null);
+
+        byte[] body = this.namesrvController.getRouteInfoManager().getSystemTopicList();
+
+        response.setBody(body);
+        response.setCode(ResponseCode.SUCCESS);
+        response.setRemark(null);
+        return response;
+    }
+
+    /**
+     * 获取指定集群下的所有 topic: <br>
+     * 
+     * @author wang.jun<br>
+     * @taskId <br>
+     * @param ctx
+     * @param request
+     * @return <br>
+     * @throws RemotingCommandException
+     */
+    private RemotingCommand getTopicsByCluster(ChannelHandlerContext ctx, RemotingCommand request)
+        throws RemotingCommandException {
+
+        final RemotingCommand response = RemotingCommand.createResponseCommand(null);
+        final GetTopicsByClusterRequestHeader requestHeader = (GetTopicsByClusterRequestHeader) request
+            .decodeCommandCustomHeader(GetTopicsByClusterRequestHeader.class);
+
+        byte[] body = this.namesrvController.getRouteInfoManager().getTopicsByCluster(requestHeader.getCluster());
+
+        response.setBody(body);
+        response.setCode(ResponseCode.SUCCESS);
+        response.setRemark(null);
+        return response;
+    }
+
+    /**
+     * // 通过NameSpace获取所有的KV List: <br>
+     * 
+     * @author wang.jun<br>
+     * @taskId <br>
+     * @param ctx
+     * @param request
+     * @return <br>
+     * @throws RemotingCommandException
+     */
+    private RemotingCommand getKVListByNamespace(ChannelHandlerContext ctx, RemotingCommand request)
+        throws RemotingCommandException {
+
+        final RemotingCommand response = RemotingCommand.createResponseCommand(null);
+        final GetKVListByNamespaceRequestHeader requestHeader = (GetKVListByNamespaceRequestHeader) request
+            .decodeCommandCustomHeader(GetKVListByNamespaceRequestHeader.class);
+
+        byte[] body = this.namesrvController.getKvConfigManager().getKVListByNamespace(requestHeader.getNamespace());
+
+        if (null != body) {
+            response.setBody(body);
+            response.setCode(ResponseCode.SUCCESS);
+            response.setRemark(null);
+            return response;
+        }
+
+        response.setCode(ResponseCode.QUERY_NOT_FOUND);
+        response.setRemark("No config item, Namespace: " + requestHeader.getNamespace());
+        return response;
+    }
+
+    /**
+     * Namesrv 删除指定 project group 下的所有 server ip 信息: <br>
+     * 
+     * @author wang.jun<br>
+     * @taskId <br>
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException <br>
+     */
+    public RemotingCommand deleteKVConfigByValue(ChannelHandlerContext ctx, RemotingCommand request)
+        throws RemotingCommandException {
+        final RemotingCommand response = RemotingCommand.createResponseCommand(null);
+        final DeleteKVConfigRequestHeader requestHeader = (DeleteKVConfigRequestHeader) request
+            .decodeCommandCustomHeader(DeleteKVConfigRequestHeader.class);
+
+        this.namesrvController.getKvConfigManager().deleteKVConfigByValue(//
+            requestHeader.getNamespace(),//
+            requestHeader.getKey()//
+            );
+
+        response.setCode(ResponseCode.SUCCESS);
+        response.setRemark(null);
+        return response;
+    }
+
+    /**
+     * 根据Value 获取配置: <br>
+     * 
+     * @author wang.jun<br>
+     * @taskId <br>
+     * @param ctx
+     * @param request
+     * @return <br>
+     * @throws RemotingCommandException
+     */
+    private RemotingCommand getKVConfigByValue(ChannelHandlerContext ctx, RemotingCommand request)
+        throws RemotingCommandException {
+        final RemotingCommand response = RemotingCommand.createResponseCommand(GetKVConfigResponseHeader.class);
+        final GetKVConfigResponseHeader responseHeader = (GetKVConfigResponseHeader) response.readCustomHeader();
+        final GetKVConfigRequestHeader requestHeader = (GetKVConfigRequestHeader) request
+            .decodeCommandCustomHeader(GetKVConfigRequestHeader.class);
+
+        String value = this.namesrvController.getKvConfigManager().getKVConfigByValue(//
+            requestHeader.getNamespace(),//
+            requestHeader.getKey()//
+            );
+
+        if (value != null) {
+            responseHeader.setValue(value);
+            response.setCode(ResponseCode.SUCCESS);
+            response.setRemark(null);
+            return response;
+        }
+
+        response.setCode(ResponseCode.QUERY_NOT_FOUND);
+        response.setRemark("No config item, Namespace: " + requestHeader.getNamespace() + " Key: "
+            + requestHeader.getKey());
+        return response;
+    }
+
+    /**
+     * // 从Namesrv删除Topic配置: <br>
+     * 
+     * @author wang.jun<br>
+     * @taskId <br>
+     * @param ctx
+     * @param request
+     * @return <br>
+     * @throws RemotingCommandException
+     */
+    private RemotingCommand deleteTopicInNamesrv(ChannelHandlerContext ctx, RemotingCommand request)
+        throws RemotingCommandException {
+        final RemotingCommand response = RemotingCommand.createResponseCommand(null);
+        DeleteTopicInNamesrvRequestHeader requestHeader = (DeleteTopicInNamesrvRequestHeader) request
+            .decodeCommandCustomHeader(DeleteTopicInNamesrvRequestHeader.class);
+
+        this.namesrvController.getRouteInfoManager().deleteTopic(requestHeader.getTopic());
+
+        response.setCode(ResponseCode.SUCCESS);
+        response.setRemark(null);
+        return response;
+    }
+
+    /**
+     * // 从Name Server获取完整Topic列表: <br>
+     * 
+     * @author wang.jun<br>
+     * @taskId <br>
+     * @param ctx
+     * @param request
+     * @return <br>
+     */
+    private RemotingCommand getAllTopicListFromNameserver(ChannelHandlerContext ctx, RemotingCommand request) {
+        final RemotingCommand response = RemotingCommand.createResponseCommand(null);
+
+        byte[] body = this.namesrvController.getRouteInfoManager().getAllTopicList();
+
+        response.setBody(body);
+        response.setCode(ResponseCode.SUCCESS);
+        response.setRemark(null);
+        return response;
     }
 
     /**
