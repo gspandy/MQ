@@ -1,5 +1,7 @@
 package com.ztesoft.zsmart.zmq.broker;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -7,10 +9,15 @@ import com.ztesoft.zsmart.zmq.broker.client.ConsumerIdsChangeListener;
 import com.ztesoft.zsmart.zmq.broker.client.ConsumerManager;
 import com.ztesoft.zsmart.zmq.broker.client.DefaultConsumerIdsChangeListener;
 import com.ztesoft.zsmart.zmq.broker.client.ProducerManager;
+import com.ztesoft.zsmart.zmq.broker.out.BrokerOuterAPI;
 import com.ztesoft.zsmart.zmq.broker.topic.TopicConfigManager;
 import com.ztesoft.zsmart.zmq.common.BrokerConfig;
 import com.ztesoft.zsmart.zmq.common.DataVersion;
+import com.ztesoft.zsmart.zmq.common.TopicConfig;
 import com.ztesoft.zsmart.zmq.common.constant.LoggerName;
+import com.ztesoft.zsmart.zmq.common.constant.PermName;
+import com.ztesoft.zsmart.zmq.common.namesrv.RegisterBrokerResult;
+import com.ztesoft.zsmart.zmq.common.protocol.body.TopicConfigSerializeWrapper;
 import com.ztesoft.zsmart.zmq.remoting.RemotingServer;
 import com.ztesoft.zsmart.zmq.remoting.netty.NettyClientConfig;
 import com.ztesoft.zsmart.zmq.remoting.netty.NettyServerConfig;
@@ -48,6 +55,8 @@ public class BrokerController {
     private RemotingServer remotingServer;
     
     private TopicConfigManager topicConfigManager;
+    
+    private final BrokerOuterAPI brokerOuterAPI;
 
     public BrokerController(//
         final BrokerConfig brokerConfig, //
@@ -65,8 +74,73 @@ public class BrokerController {
         this.consumerIdsChangeListener = new DefaultConsumerIdsChangeListener(this);
         this.consumerManager = new ConsumerManager(this.consumerIdsChangeListener);
         this.producerManager = new ProducerManager();
+        
+        if (this.brokerConfig.getNamesrvAddr() != null) {
+            this.brokerOuterAPI.updateNameServerAddressList(this.brokerConfig.getNamesrvAddr());
+            log.info("user specfied name server address: {}", this.brokerConfig.getNamesrvAddr());
+        }
 
     }
+    
+    
+    /**
+     * 
+     * 注册borker topics: <br> 
+     *  
+     * @author wang.jun<br>
+     * @taskId <br>
+     * @param checkOrderConfig
+     * @param oneway <br>
+     */
+    public synchronized void registerBrokerAll(final boolean checkOrderConfig,boolean oneway){
+        TopicConfigSerializeWrapper topicConfigWrapper = this.getTopicConfigManager()
+            .buildTopicConfigSerializeWrapper();
+        if(!PermName.isWriteable(this.getBrokerConfig().getBrokerPermission())
+            || !PermName.isReadable(this.getBrokerConfig().getBrokerPermission())){
+            ConcurrentHashMap<String, TopicConfig> topicConfigTable = 
+                new ConcurrentHashMap<String, TopicConfig>(topicConfigWrapper.getTopicConfigTable());
+        
+            for(TopicConfig topicConfig : topicConfigTable.values()){
+                topicConfig.setPerm(this.getBrokerConfig().getBrokerPermission());
+            }
+            
+            topicConfigWrapper.setTopicConfigTable(topicConfigTable);
+        }
+        
+        RegisterBrokerResult registerBrokerResult = this.brokerOuterAPI.registerBrokerAll(//
+            this.brokerConfig.getBrokerClusterName(), //
+            this.getBrokerAddr(),//
+            this.brokerConfig.getBrokerName(), //
+            this.brokerConfig.getBrokerId(),//
+            this.getHAServerAddr(), //
+            topicConfigWrapper,//
+            this.filterServerManager.buildNewFilterServerList(),//
+            oneway);
+        
+        if(registerBrokerResult != null){
+             
+        }
+    }
+    
+    
+    private String getHAServerAddr() {
+        String addr = this.brokerConfig.getBrokerIP2() + ":" + this.messageStoreConfig.getHaListenPort();
+        return addr;
+    }
+
+
+    /**
+     * 
+     * 获取broker地址: <br> 
+     *  
+     * @author wang.jun<br>
+     * @taskId <br>
+     * @return <br>
+     */
+    private String getBrokerAddr() {
+        return this.brokerConfig.getBrokerIP1() + ":" + this.nettyServerConfig.getListenPort();
+    }
+
 
     public BrokerConfig getBrokerConfig() {
         return brokerConfig;
@@ -106,6 +180,21 @@ public class BrokerController {
 
     public void setRemotingServer(RemotingServer remotingServer) {
         this.remotingServer = remotingServer;
+    }
+
+
+    public TopicConfigManager getTopicConfigManager() {
+        return topicConfigManager;
+    }
+
+
+    public void setTopicConfigManager(TopicConfigManager topicConfigManager) {
+        this.topicConfigManager = topicConfigManager;
+    }
+
+
+    public BrokerOuterAPI getBrokerOuterAPI() {
+        return brokerOuterAPI;
     }
 
 }
