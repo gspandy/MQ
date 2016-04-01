@@ -15,7 +15,7 @@ public class BrokerPathConfigHelper {
         brokerConfigPath = path;
     }
 
-    public static String getTopicConfig(final String rootDir) {
+    public static String getTopicConfigPath(final String rootDir) {
         return rootDir + File.separator + "config" + File.separator + "topics.json";
     }
 
