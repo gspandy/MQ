@@ -174,24 +174,25 @@ public class TopicConfigManager extends ConfigManager {
                             topicConfig.setTopicSysFlag(topicSysFlag);
                             topicConfig.setTopicFilterType(defaultTopicConfig.getTopicFilterType());
                         }
+                        else {
+                            log.warn("create new topic failed, because the default topic[" + defaultTopic
+                                + "] no perm, " + defaultTopicConfig.getPerm() + " producer: " + remoteAddress);
+                        }
+
                     }
                     else {
-                        log.warn("create new topic failed, because the default topic[" + defaultTopic + "] no perm, "
-                            + defaultTopicConfig.getPerm() + " producer: " + remoteAddress);
+                        log.warn("create new topic failed, because the default topic[" + defaultTopic + "] not exist."
+                            + " producer: " + remoteAddress);
                     }
-                }
-                else {
-                    log.warn("create new topic failed, because the default topic[" + defaultTopic + "] not exist."
-                        + " producer: " + remoteAddress);
-                }
 
-                if (topicConfig != null) {
-                    log.info("create new topic by default topic[" + defaultTopic + "], " + topicConfig + " producer: "
-                        + remoteAddress);
-                    this.topicConfigTable.put(topic, topicConfig);
-                    this.dataVersion.nextVersion();
-                    createNew = true;
-                    this.persist();
+                    if (topicConfig != null) {
+                        log.info("create new topic by default topic[" + defaultTopic + "], " + topicConfig
+                            + " producer: " + remoteAddress);
+                        this.topicConfigTable.put(topic, topicConfig);
+                        this.dataVersion.nextVersion();
+                        createNew = true;
+                        this.persist();
+                    }
                 }
             }
             finally {

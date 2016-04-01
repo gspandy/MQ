@@ -10,6 +10,7 @@ import com.ztesoft.zsmart.zmq.broker.client.ConsumerManager;
 import com.ztesoft.zsmart.zmq.broker.client.DefaultConsumerIdsChangeListener;
 import com.ztesoft.zsmart.zmq.broker.client.ProducerManager;
 import com.ztesoft.zsmart.zmq.broker.out.BrokerOuterAPI;
+import com.ztesoft.zsmart.zmq.broker.subscription.SubscriptionGroupManager;
 import com.ztesoft.zsmart.zmq.broker.topic.TopicConfigManager;
 import com.ztesoft.zsmart.zmq.common.BrokerConfig;
 import com.ztesoft.zsmart.zmq.common.DataVersion;
@@ -55,6 +56,7 @@ public class BrokerController {
     private RemotingServer remotingServer;
     
     private TopicConfigManager topicConfigManager;
+    private SubscriptionGroupManager subscriptionGroupManager;
     
     private final BrokerOuterAPI brokerOuterAPI;
 
@@ -70,6 +72,9 @@ public class BrokerController {
         this.messageStoreConfig = messageStoreConfig;
 
         this.topicConfigManager = new TopicConfigManager(this);
+        this.subscriptionGroupManager = new SubscriptionGroupManager(this);
+        
+        this.brokerOuterAPI = new BrokerOuterAPI(nettyClientConfig);
         
         this.consumerIdsChangeListener = new DefaultConsumerIdsChangeListener(this);
         this.consumerManager = new ConsumerManager(this.consumerIdsChangeListener);
@@ -195,6 +200,16 @@ public class BrokerController {
 
     public BrokerOuterAPI getBrokerOuterAPI() {
         return brokerOuterAPI;
+    }
+
+
+    public SubscriptionGroupManager getSubscriptionGroupManager() {
+        return subscriptionGroupManager;
+    }
+
+
+    public void setSubscriptionGroupManager(SubscriptionGroupManager subscriptionGroupManager) {
+        this.subscriptionGroupManager = subscriptionGroupManager;
     }
 
 }
