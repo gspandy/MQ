@@ -1,5 +1,9 @@
 package com.ztesoft.zsmart.zmq.broker.filtersrv;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -9,8 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.ztesoft.zsmart.zmq.broker.BrokerController;
+import com.ztesoft.zsmart.zmq.broker.BrokerStartup;
 import com.ztesoft.zsmart.zmq.common.ThreadFactoryImpl;
 import com.ztesoft.zsmart.zmq.common.constant.LoggerName;
+import com.ztesoft.zsmart.zmq.remoting.common.RemotingUtil;
 
 import io.netty.channel.Channel;
 
@@ -50,17 +56,47 @@ public class FilterServerManager {
         }, 1000 * 5, 1000 * 30, TimeUnit.MILLISECONDS);
 
     }
-    
-    public void shutdown(){
+
+
+    /**
+     * 创建filter server
+     */
+    protected void createFilterServer() {
+        int more = this.brokerController.getBrokerConfig().getFilterServerNums();
+        String cmd = this.buildStartCommand();
+        for (int i = 0; i < more; i++) {
+            FilterServerUtil.callShell(cmd, log);
+        }
+
+    }
+
+
+    public void shutdown() {
         this.scheduledExecutorService.shutdown();
     }
-    
-    private String buildStartCommand(){
+
+
+    private String buildStartCommand() {
         String config = "";
-        if(broker)
+        if (BrokerStartup.configFile != null) {
+            config = String.format("-c %s", BrokerStartup.configFile);
+        }
+
+        if (this.brokerController.getBrokerConfig().getNamesrvAddr() != null) {
+            config += String.format("-n %s", this.brokerController.getBrokerConfig().getNamesrvAddr());
+        }
+
+        if (RemotingUtil.isWindowsPlatform()) {
+            return String.format("start /b %s\\bin\\mqfiltersrv.exe %s", //
+                this.brokerController.getBrokerConfig().getZmqHome(), //
+                config);
+        }
+        else {
+            return String.format("sh %s/bin/startfsrv.sh %s", //
+                this.brokerController.getBrokerConfig().getZmqHome(), //
+                config);
+        }
     }
-    
-    
 
     class FilterServerInfo {
         private String filterServerAddr;
@@ -85,6 +121,67 @@ public class FilterServerManager {
         public void setLastUpdateTimestamp(long lastUpdateTimestamp) {
             this.lastUpdateTimestamp = lastUpdateTimestamp;
         }
+    }
+
+
+    /**
+     * 注册filter server
+     * 
+     * @param channel
+     * @param filterServerAddr
+     */
+    public void registerFilterServer(final Channel channel, final String filterServerAddr) {
+        FilterServerInfo filterServerInfo = this.filterServerTable.get(channel);
+
+        if (filterServerInfo != null) {
+            filterServerInfo.setLastUpdateTimestamp(System.currentTimeMillis());
+        }
+        else {
+            filterServerInfo = new FilterServerInfo();
+            filterServerInfo.setFilterServerAddr(filterServerAddr);
+            filterServerInfo.setLastUpdateTimestamp(System.currentTimeMillis());
+            this.filterServerTable.put(channel, filterServerInfo);
+            log.info("Receive a New Filter Server<{}>", filterServerAddr);
+        }
+    }
+
+
+    /**
+     * Filter Server 10s向Broker注册一次，Broker如果发现30s没有注册，则删除它
+     */
+    public void scanNotActiveChannel() {
+        // 单位毫秒
+        Iterator<Entry<Channel, FilterServerInfo>> it = this.filterServerTable.entrySet().iterator();
+        while (it.hasNext()) {
+            Entry<Channel, FilterServerInfo> next = it.next();
+            long timestamp = next.getValue().getLastUpdateTimestamp();
+            Channel channel = next.getKey();
+            if ((System.currentTimeMillis() - timestamp) > FilterServerMaxIdleTimeMills) {
+                log.info("The Filter Server<{}> expired, remove it", next.getKey());
+                it.remove();
+                RemotingUtil.closeChannel(channel);
+            }
+        }
+    }
+
+
+    public void doChannelCloseEvent(final String remoteAddr, final Channel channel) {
+        FilterServerInfo old = this.filterServerTable.remove(channel);
+        if (old != null) {
+            log.warn("The Filter Server<{}> connection<{}> closed, remove it", old.getFilterServerAddr(),
+                remoteAddr);
+        }
+    }
+
+
+    public List<String> buildNewFilterServerList() {
+        List<String> addr = new ArrayList<String>();
+        Iterator<Entry<Channel, FilterServerInfo>> it = this.filterServerTable.entrySet().iterator();
+        while (it.hasNext()) {
+            Entry<Channel, FilterServerInfo> next = it.next();
+            addr.add(next.getValue().getFilterServerAddr());
+        }
+        return addr;
     }
 
 }

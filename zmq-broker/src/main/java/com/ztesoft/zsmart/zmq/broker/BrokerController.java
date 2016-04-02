@@ -26,6 +26,7 @@ import com.ztesoft.zsmart.zmq.remoting.netty.NettyServerConfig;
 import com.ztesoft.zsmart.zmq.store.MessageStore;
 import com.ztesoft.zsmart.zmq.store.config.MessageStoreConfig;
 
+
 /**
  * broker 主控制器 <br>
  * 
@@ -67,11 +68,12 @@ public class BrokerController {
 
     private final BrokerOuterAPI brokerOuterAPI;
 
+
     public BrokerController(//
-        final BrokerConfig brokerConfig, //
-        final NettyServerConfig nettyServerConfig, //
-        final NettyClientConfig nettyClientConfig, //
-        final MessageStoreConfig messageStoreConfig //
+            final BrokerConfig brokerConfig, //
+            final NettyServerConfig nettyServerConfig, //
+            final NettyClientConfig nettyClientConfig, //
+            final MessageStoreConfig messageStoreConfig //
     ) {
         this.brokerConfig = brokerConfig;
         this.nettyServerConfig = nettyServerConfig;
@@ -94,6 +96,7 @@ public class BrokerController {
 
     }
 
+
     public boolean initialize() {
         boolean result = true;
 
@@ -103,21 +106,23 @@ public class BrokerController {
 
     }
 
+
     /**
      * 注册borker topics: <br>
      * 
      * @author wang.jun<br>
      * @taskId <br>
      * @param checkOrderConfig
-     * @param oneway <br>
+     * @param oneway
+     *            <br>
      */
     public synchronized void registerBrokerAll(final boolean checkOrderConfig, boolean oneway) {
-        TopicConfigSerializeWrapper topicConfigWrapper = this.getTopicConfigManager()
-            .buildTopicConfigSerializeWrapper();
+        TopicConfigSerializeWrapper topicConfigWrapper =
+                this.getTopicConfigManager().buildTopicConfigSerializeWrapper();
         if (!PermName.isWriteable(this.getBrokerConfig().getBrokerPermission())
-            || !PermName.isReadable(this.getBrokerConfig().getBrokerPermission())) {
-            ConcurrentHashMap<String, TopicConfig> topicConfigTable = new ConcurrentHashMap<String, TopicConfig>(
-                topicConfigWrapper.getTopicConfigTable());
+                || !PermName.isReadable(this.getBrokerConfig().getBrokerPermission())) {
+            ConcurrentHashMap<String, TopicConfig> topicConfigTable =
+                    new ConcurrentHashMap<String, TopicConfig>(topicConfigWrapper.getTopicConfigTable());
 
             for (TopicConfig topicConfig : topicConfigTable.values()) {
                 topicConfig.setPerm(this.getBrokerConfig().getBrokerPermission());
@@ -128,12 +133,12 @@ public class BrokerController {
 
         RegisterBrokerResult registerBrokerResult = this.brokerOuterAPI.registerBrokerAll(//
             this.brokerConfig.getBrokerClusterName(), //
-            this.getBrokerAddr(),//
+            this.getBrokerAddr(), //
             this.brokerConfig.getBrokerName(), //
-            this.brokerConfig.getBrokerId(),//
+            this.brokerConfig.getBrokerId(), //
             this.getHAServerAddr(), //
-            topicConfigWrapper,//
-            this.filterServerManager.buildNewFilterServerList(),//
+            topicConfigWrapper, //
+            this.filterServerManager.buildNewFilterServerList(), //
             oneway);
 
         if (registerBrokerResult != null) {
@@ -141,10 +146,12 @@ public class BrokerController {
         }
     }
 
+
     private String getHAServerAddr() {
         String addr = this.brokerConfig.getBrokerIP2() + ":" + this.messageStoreConfig.getHaListenPort();
         return addr;
     }
+
 
     /**
      * 获取broker地址: <br>
@@ -157,73 +164,91 @@ public class BrokerController {
         return this.brokerConfig.getBrokerIP1() + ":" + this.nettyServerConfig.getListenPort();
     }
 
+
     public BrokerConfig getBrokerConfig() {
         return brokerConfig;
     }
+
 
     public NettyServerConfig getNettyServerConfig() {
         return nettyServerConfig;
     }
 
+
     public NettyClientConfig getNettyClientConfig() {
         return nettyClientConfig;
     }
+
 
     public MessageStoreConfig getMessageStoreConfig() {
         return messageStoreConfig;
     }
 
+
     public DataVersion getConfigDataVersion() {
         return configDataVersion;
     }
+
 
     public ConsumerIdsChangeListener getConsumerIdsChangeListener() {
         return consumerIdsChangeListener;
     }
 
+
     public ConsumerManager getConsumerManager() {
         return consumerManager;
     }
+
 
     public ProducerManager getProducerManager() {
         return producerManager;
     }
 
+
     public RemotingServer getRemotingServer() {
         return remotingServer;
     }
+
 
     public void setRemotingServer(RemotingServer remotingServer) {
         this.remotingServer = remotingServer;
     }
 
+
     public TopicConfigManager getTopicConfigManager() {
         return topicConfigManager;
     }
+
 
     public void setTopicConfigManager(TopicConfigManager topicConfigManager) {
         this.topicConfigManager = topicConfigManager;
     }
 
+
     public BrokerOuterAPI getBrokerOuterAPI() {
         return brokerOuterAPI;
     }
+
 
     public SubscriptionGroupManager getSubscriptionGroupManager() {
         return subscriptionGroupManager;
     }
 
+
     public void setSubscriptionGroupManager(SubscriptionGroupManager subscriptionGroupManager) {
         this.subscriptionGroupManager = subscriptionGroupManager;
     }
+
 
     public MessageStore getMessageStore() {
         return messageStore;
     }
 
+
     public void setMessageStore(MessageStore messageStore) {
         this.messageStore = messageStore;
     }
+
 
     public ConsumerOffsetManager getConsumerOffsetManager() {
         return consumerOffsetManager;

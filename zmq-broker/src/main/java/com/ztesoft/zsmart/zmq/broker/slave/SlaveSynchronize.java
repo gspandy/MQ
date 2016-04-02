@@ -8,9 +8,11 @@ import org.slf4j.LoggerFactory;
 import com.ztesoft.zsmart.zmq.broker.BrokerController;
 import com.ztesoft.zsmart.zmq.common.MixAll;
 import com.ztesoft.zsmart.zmq.common.constant.LoggerName;
+import com.ztesoft.zsmart.zmq.common.protocol.body.ConsumerOffsetSerializeWrapper;
 import com.ztesoft.zsmart.zmq.common.protocol.body.SubscriptionGroupWrapper;
 import com.ztesoft.zsmart.zmq.common.protocol.body.TopicConfigSerializeWrapper;
 import com.ztesoft.zsmart.zmq.store.config.StorePathConfigHelper;
+
 
 /**
  * Slave从Master同步信息 <br>
@@ -29,70 +31,86 @@ public class SlaveSynchronize {
 
     private volatile String masterAddr = null;
 
+
     public SlaveSynchronize(BrokerController brokerController) {
         this.brokerController = brokerController;
     }
+
 
     public String getMasterAddr() {
         return masterAddr;
     }
 
+
     public void setMasterAddr(String masterAddr) {
         this.masterAddr = masterAddr;
     }
 
+
     public BrokerController getBrokerController() {
         return brokerController;
     }
+
 
     /**
      * 同步TopicConfig ConsumerOffset DelayOffset SubscriptionGroupConfig: <br>
      * 
      * @author wang.jun<br>
      * @taskId <br>
-     * <br>
+     *         <br>
      */
     public void syncAll() {
         syncTopicConfig();
-        syncConsumerOffset(); //同步消费进度
+        syncConsumerOffset(); // 同步消费进度
         syncSubscriptionGroupConfig();
-        syncDelayOffset();//同步时定消费进度
+        syncDelayOffset();// 同步时定消费进度
     }
+
 
     /**
      * 
-     * 同步消费进度: <br> 
-     *  
+     * 同步消费进度: <br>
+     * 
      * @author wang.jun<br>
-     * @taskId <br> <br>
+     * @taskId <br>
+     *         <br>
      */
     private void syncConsumerOffset() {
         String masterAddrBak = this.masterAddr;
 
         if (masterAddrBak != null) {
-           1=1
-
-                
+            try {
+                ConsumerOffsetSerializeWrapper offsetWrapper =
+                        this.getBrokerController().getBrokerOuterAPI().getAllConsumerOffset(masterAddrBak);
+                this.brokerController.getConsumerOffsetManager().getOffsetTable()
+                    .putAll(offsetWrapper.getOffsetTable());
+                this.brokerController.getConsumerOffsetManager().persist();
+                log.info("update slave consumer offset from master, {}", masterAddrBak);
+            }
+            catch (Exception e) {
+                log.error("syncConsumerOffset Exception, " + masterAddrBak, e);
+            }
         }
-        
     }
+
 
     /**
      * 从Master 同步topic: <br>
      * 
      * @author wang.jun<br>
      * @taskId <br>
-     * <br>
+     *         <br>
      */
     private void syncTopicConfig() {
         String masterAddrBak = this.masterAddr;
 
         if (masterAddrBak != null) {
             try {
-                TopicConfigSerializeWrapper wrapper = this.brokerController.getBrokerOuterAPI().getAllTopicConfig(
-                    masterAddrBak);
+                TopicConfigSerializeWrapper wrapper =
+                        this.brokerController.getBrokerOuterAPI().getAllTopicConfig(masterAddrBak);
 
-                if (!this.brokerController.getTopicConfigManager().getDataVersion().equals(wrapper.getDataVersion())) {
+                if (!this.brokerController.getTopicConfigManager().getDataVersion()
+                    .equals(wrapper.getDataVersion())) {
                     this.brokerController.getTopicConfigManager().getDataVersion()
                         .assignNewOne(wrapper.getDataVersion());
                     this.brokerController.getTopicConfigManager().getTopicConfigTable().clear();
@@ -112,12 +130,13 @@ public class SlaveSynchronize {
         }
     }
 
+
     /**
      * 同步订阅组信息: <br>
      * 
      * @author wang.jun<br>
      * @taskId <br>
-     * <br>
+     *         <br>
      */
     private void syncSubscriptionGroupConfig() {
         String masterAddrBak = this.masterAddr;
@@ -148,12 +167,13 @@ public class SlaveSynchronize {
         }
     }
 
+
     /**
      * 获取所有定时进度: <br>
      * 
      * @author wang.jun<br>
      * @taskId <br>
-     * <br>
+     *         <br>
      */
     private void syncDelayOffset() {
         String masterAddrBak = this.masterAddr;
@@ -161,11 +181,12 @@ public class SlaveSynchronize {
         if (masterAddrBak != null) {
             try {
 
-                String delayOffset = this.brokerController.getBrokerOuterAPI().getAllDelayOffset(masterAddrBak);
+                String delayOffset =
+                        this.brokerController.getBrokerOuterAPI().getAllDelayOffset(masterAddrBak);
 
                 if (delayOffset != null) {
-                    String fileName = StorePathConfigHelper.getDelayOffsetStorePath(this.brokerController
-                        .getMessageStoreConfig().getStorePathRootDir());
+                    String fileName = StorePathConfigHelper.getDelayOffsetStorePath(
+                        this.brokerController.getMessageStoreConfig().getStorePathRootDir());
 
                     try {
                         MixAll.string2File(delayOffset, fileName);
