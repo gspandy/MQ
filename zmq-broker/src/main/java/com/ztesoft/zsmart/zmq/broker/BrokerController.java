@@ -1,20 +1,33 @@
 package com.ztesoft.zsmart.zmq.broker;
 
+import java.net.InetSocketAddress;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
+import org.junit.internal.requests.FilterRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.ztesoft.zsmart.zmq.broker.client.ClientHousekeepingService;
 import com.ztesoft.zsmart.zmq.broker.client.ConsumerIdsChangeListener;
 import com.ztesoft.zsmart.zmq.broker.client.ConsumerManager;
 import com.ztesoft.zsmart.zmq.broker.client.DefaultConsumerIdsChangeListener;
 import com.ztesoft.zsmart.zmq.broker.client.ProducerManager;
+import com.ztesoft.zsmart.zmq.broker.client.net.Broker2Client;
+import com.ztesoft.zsmart.zmq.broker.client.rebalance.RebalanceLockManager;
+import com.ztesoft.zsmart.zmq.broker.filtersrv.FilterServerManager;
+import com.ztesoft.zsmart.zmq.broker.longpolling.PullRequestHoldService;
 import com.ztesoft.zsmart.zmq.broker.offset.ConsumerOffsetManager;
 import com.ztesoft.zsmart.zmq.broker.out.BrokerOuterAPI;
+import com.ztesoft.zsmart.zmq.broker.slave.SlaveSynchronize;
 import com.ztesoft.zsmart.zmq.broker.subscription.SubscriptionGroupManager;
 import com.ztesoft.zsmart.zmq.broker.topic.TopicConfigManager;
 import com.ztesoft.zsmart.zmq.common.BrokerConfig;
 import com.ztesoft.zsmart.zmq.common.DataVersion;
+import com.ztesoft.zsmart.zmq.common.ThreadFactoryImpl;
 import com.ztesoft.zsmart.zmq.common.TopicConfig;
 import com.ztesoft.zsmart.zmq.common.constant.LoggerName;
 import com.ztesoft.zsmart.zmq.common.constant.PermName;
@@ -25,6 +38,8 @@ import com.ztesoft.zsmart.zmq.remoting.netty.NettyClientConfig;
 import com.ztesoft.zsmart.zmq.remoting.netty.NettyServerConfig;
 import com.ztesoft.zsmart.zmq.store.MessageStore;
 import com.ztesoft.zsmart.zmq.store.config.MessageStoreConfig;
+import com.ztesoft.zsmart.zmq.store.stats.BrokerStats;
+import com.ztesoft.zsmart.zmq.store.stats.BrokerStatsManager;
 
 
 /**
@@ -39,34 +54,42 @@ import com.ztesoft.zsmart.zmq.store.config.MessageStoreConfig;
  */
 public class BrokerController {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.BrokerLoggerName);
-
     private final BrokerConfig brokerConfig;
-
     private final NettyServerConfig nettyServerConfig;
-
     private final NettyClientConfig nettyClientConfig;
-
     private final MessageStoreConfig messageStoreConfig;
-
-    private final ConsumerIdsChangeListener consumerIdsChangeListener;
-
     private final DataVersion configDataVersion = new DataVersion();
-
     private final ConsumerOffsetManager consumerOffsetManager;
-
     private final ConsumerManager consumerManager;
-
     private final ProducerManager producerManager;
+    private final ClientHousekeepingService clientHousekeepingService;
 
-    private MessageStore messageStore;
-
-    private RemotingServer remotingServer;
-
-    private TopicConfigManager topicConfigManager;
-
-    private SubscriptionGroupManager subscriptionGroupManager;
-
+    private final PullMessageProcessor pullMessageProcessor;
+    private final PullRequestHoldService pullRequestHoldService;
+    private final Broker2Client broker2Client;
+    private final SubscriptionGroupManager subscriptionGroupManager;
+    private final ConsumerIdsChangeListener consumerIdsChangeListener;
+    private final RebalanceLockManager rebalanceLockManager = new RebalanceLockManager();
     private final BrokerOuterAPI brokerOuterAPI;
+    private final ScheduledExecutorService scheduledExecutorService = Executors
+        .newSingleThreadScheduledExecutor(new ThreadFactoryImpl("BrokerControllerScheduledThread"));
+    private final SlaveSynchronize slaveSynchronize;
+    private MessageStore messageStore;
+    private RemotingServer remotingServer;
+    private TopicConfigManager topicConfigManager;
+    private ExecutorService sendMessageExecutor;
+    private ExecutorService pullMessageExecutor;
+    private ExecutorService adminBrokerExecutor;
+    private ExecutorService clientManageExecutor;
+    private boolean updateMasterHAServerAddrPeriodically = false;
+
+    private BrokerStats brokerStats;
+    private final BlockingQueue<Runnable> sendThreadPoolQueue;
+    private final BlockingQueue<Runnable> pullThreadPoolQueue;
+
+    private final FilterServerManager filterServerManager;
+    private final BrokerStatsManager brokerStatsManager;
+    private InetSocketAddress storeHost;
 
 
     public BrokerController(//
@@ -74,7 +97,7 @@ public class BrokerController {
             final NettyServerConfig nettyServerConfig, //
             final NettyClientConfig nettyClientConfig, //
             final MessageStoreConfig messageStoreConfig //
-    ) {
+    ) {s
         this.brokerConfig = brokerConfig;
         this.nettyServerConfig = nettyServerConfig;
         this.nettyClientConfig = nettyClientConfig;
