@@ -13,6 +13,9 @@ import org.apache.commons.cli.PosixParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.joran.JoranConfigurator;
+
 import com.ztesoft.zsmart.zmq.common.BrokerConfig;
 import com.ztesoft.zsmart.zmq.common.MQVersion;
 import com.ztesoft.zsmart.zmq.common.MixAll;
@@ -26,9 +29,6 @@ import com.ztesoft.zsmart.zmq.remoting.protocol.RemotingCommand;
 import com.ztesoft.zsmart.zmq.srvutil.ServerUtil;
 import com.ztesoft.zsmart.zmq.store.config.BrokerRole;
 import com.ztesoft.zsmart.zmq.store.config.MessageStoreConfig;
-
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.joran.JoranConfigurator;
 
 
 /**
@@ -75,7 +75,7 @@ public class BrokerStartup {
      * 
      * @param createBrokerController
      */
-    private static void start(BrokerController controller) {
+    private static BrokerController start(BrokerController controller) {
         try {
             // 启动服务控制对象
             controller.start();
