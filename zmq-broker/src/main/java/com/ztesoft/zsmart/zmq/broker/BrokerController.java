@@ -30,6 +30,7 @@ import com.ztesoft.zsmart.zmq.broker.mqtrace.ConsumeMessageHook;
 import com.ztesoft.zsmart.zmq.broker.mqtrace.SendMessageHook;
 import com.ztesoft.zsmart.zmq.broker.offset.ConsumerOffsetManager;
 import com.ztesoft.zsmart.zmq.broker.out.BrokerOuterAPI;
+import com.ztesoft.zsmart.zmq.broker.processor.PullMessageProcessor;
 import com.ztesoft.zsmart.zmq.broker.slave.SlaveSynchronize;
 import com.ztesoft.zsmart.zmq.broker.subscription.SubscriptionGroupManager;
 import com.ztesoft.zsmart.zmq.broker.topic.TopicConfigManager;
