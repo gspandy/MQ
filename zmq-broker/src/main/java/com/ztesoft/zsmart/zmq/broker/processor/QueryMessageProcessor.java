@@ -3,11 +3,6 @@ package com.ztesoft.zsmart.zmq.broker.processor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.FileRegion;
-
 import com.ztesoft.zsmart.zmq.broker.BrokerController;
 import com.ztesoft.zsmart.zmq.broker.pagecache.OneMessageTransfer;
 import com.ztesoft.zsmart.zmq.broker.pagecache.QueryMessageTransfer;
@@ -22,6 +17,12 @@ import com.ztesoft.zsmart.zmq.remoting.netty.NettyRequestProcessor;
 import com.ztesoft.zsmart.zmq.remoting.protocol.RemotingCommand;
 import com.ztesoft.zsmart.zmq.store.QueryMessageResult;
 import com.ztesoft.zsmart.zmq.store.SelectMapedBufferResult;
+
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.FileRegion;
+
 
 /**
  * 查询消息请求处理 <br>
@@ -39,24 +40,28 @@ public class QueryMessageProcessor implements NettyRequestProcessor {
 
     private final BrokerController brokerController;
 
+
     public QueryMessageProcessor(final BrokerController brokerController) {
         this.brokerController = brokerController;
     }
 
+
     @Override
-    public RemotingCommand processRequest(ChannelHandlerContext ctx, RemotingCommand request) throws Exception {
+    public RemotingCommand processRequest(ChannelHandlerContext ctx, RemotingCommand request)
+            throws RemotingCommandException {
 
         switch (request.getCode()) {
-            case RequestCode.QUERY_MESSAGE:
-                return this.queryMessage(ctx, request);
-            case RequestCode.VIEW_MESSAGE_BY_ID:
-                return this.viewMessageById(ctx, request);
-            default:
-                break;
+        case RequestCode.QUERY_MESSAGE:
+            return this.queryMessage(ctx, request);
+        case RequestCode.VIEW_MESSAGE_BY_ID:
+            return this.viewMessageById(ctx, request);
+        default:
+            break;
         }
 
         return null;
     }
+
 
     /**
      * Description: <br>
@@ -69,10 +74,12 @@ public class QueryMessageProcessor implements NettyRequestProcessor {
      * @throws RemotingCommandException
      */
     private RemotingCommand queryMessage(ChannelHandlerContext ctx, RemotingCommand request)
-        throws RemotingCommandException {
-        final RemotingCommand response = RemotingCommand.createResponseCommand(QueryMessageResponseHeader.class);
+            throws RemotingCommandException {
+        final RemotingCommand response =
+                RemotingCommand.createResponseCommand(QueryMessageResponseHeader.class);
 
-        final QueryMessageResponseHeader responseHeader = (QueryMessageResponseHeader) response.readCustomHeader();
+        final QueryMessageResponseHeader responseHeader =
+                (QueryMessageResponseHeader) response.readCustomHeader();
 
         final QueryMessageRequestHeader requestHeader = (QueryMessageRequestHeader) request
             .decodeCommandCustomHeader(QueryMessageRequestHeader.class);
@@ -92,8 +99,8 @@ public class QueryMessageProcessor implements NettyRequestProcessor {
             response.setCode(ResponseCode.SUCCESS);
             response.setRemark(null);
             try {
-                FileRegion fileRegion = new QueryMessageTransfer(response.encodeHeader(queryMessageResult
-                    .getBufferTotalSize()), queryMessageResult);
+                FileRegion fileRegion = new QueryMessageTransfer(
+                    response.encodeHeader(queryMessageResult.getBufferTotalSize()), queryMessageResult);
 
                 ctx.channel().writeAndFlush(fileRegion).addListener(new ChannelFutureListener() {
                     @Override
@@ -119,17 +126,18 @@ public class QueryMessageProcessor implements NettyRequestProcessor {
         return response;
     }
 
+
     public RemotingCommand viewMessageById(ChannelHandlerContext ctx, RemotingCommand request)
-        throws RemotingCommandException {
+            throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
-        final ViewMessageRequestHeader requestHeader = (ViewMessageRequestHeader) request
-            .decodeCommandCustomHeader(ViewMessageRequestHeader.class);
+        final ViewMessageRequestHeader requestHeader =
+                (ViewMessageRequestHeader) request.decodeCommandCustomHeader(ViewMessageRequestHeader.class);
 
         // 由于使用sendfile，所以必须要设置
         response.setOpaque(request.getOpaque());
 
-        final SelectMapedBufferResult selectMapedBufferResult = this.brokerController.getMessageStore()
-            .selectOneMessageByOffset(requestHeader.getOffset());
+        final SelectMapedBufferResult selectMapedBufferResult =
+                this.brokerController.getMessageStore().selectOneMessageByOffset(requestHeader.getOffset());
         if (selectMapedBufferResult != null) {
             response.setCode(ResponseCode.SUCCESS);
             response.setRemark(null);
