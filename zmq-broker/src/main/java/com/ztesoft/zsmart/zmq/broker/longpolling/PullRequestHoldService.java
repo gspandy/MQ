@@ -82,7 +82,7 @@ public class PullRequestHoldService extends ServiceThread {
      * @param queueId
      * @param offset
      */
-    private void notifyMessageArriving(String topic, int queueId, long maxOffset) {
+    public void notifyMessageArriving(String topic, int queueId, long maxOffset) {
         String key = this.buildKey(topic, queueId);
         ManyPullRequest mpr = this.pullRequestTable.get(key);
         if (mpr != null) {
