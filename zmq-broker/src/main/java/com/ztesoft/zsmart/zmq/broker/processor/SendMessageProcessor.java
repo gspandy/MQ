@@ -9,6 +9,7 @@ import com.ztesoft.zsmart.zmq.broker.BrokerController;
 import com.ztesoft.zsmart.zmq.broker.mqtrace.ConsumeMessageContext;
 import com.ztesoft.zsmart.zmq.broker.mqtrace.ConsumeMessageHook;
 import com.ztesoft.zsmart.zmq.broker.mqtrace.SendMessageContext;
+import com.ztesoft.zsmart.zmq.broker.mqtrace.SendMessageHook;
 import com.ztesoft.zsmart.zmq.client.consumer.listener.ConsumeConcurrentlyStatus;
 import com.ztesoft.zsmart.zmq.common.MixAll;
 import com.ztesoft.zsmart.zmq.common.TopicConfig;
@@ -425,6 +426,21 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor {
 
     public SocketAddress getStoreHost() {
         return storeHost;
+    }
+
+    /**
+     * 发送每条消息会回调
+     */
+    private List<SendMessageHook> sendMessageHookList;
+
+
+    public boolean hasSendMessageHook() {
+        return sendMessageHookList != null && !this.sendMessageHookList.isEmpty();
+    }
+
+
+    public void registerSendMessageHook(List<SendMessageHook> sendMessageHookList) {
+        this.sendMessageHookList = sendMessageHookList;
     }
 
     /**
