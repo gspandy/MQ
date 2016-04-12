@@ -270,7 +270,7 @@ public class Broker2Client {
      * @param originClientId
      * @return
      */
-    public RemotingCommand getConsumerStatus(String topic, String group, String originClientId) {
+    public RemotingCommand getConsumeStatus(String topic, String group, String originClientId) {
         final RemotingCommand result = RemotingCommand.createResponseCommand(null);
         GetConsumerStatusRequestHeader requestHeader = new GetConsumerStatusRequestHeader();
         requestHeader.setTopic(topic);

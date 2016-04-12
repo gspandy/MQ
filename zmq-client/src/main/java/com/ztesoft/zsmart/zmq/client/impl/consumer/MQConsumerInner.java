@@ -19,6 +19,7 @@ import java.util.Set;
 
 import com.ztesoft.zsmart.zmq.common.consumer.ConsumeFromWhere;
 import com.ztesoft.zsmart.zmq.common.message.MessageQueue;
+import com.ztesoft.zsmart.zmq.common.protocol.body.ConsumerRunningInfo;
 import com.ztesoft.zsmart.zmq.common.protocol.heartbeat.ConsumeType;
 import com.ztesoft.zsmart.zmq.common.protocol.heartbeat.MessageModel;
 import com.ztesoft.zsmart.zmq.common.protocol.heartbeat.SubscriptionData;

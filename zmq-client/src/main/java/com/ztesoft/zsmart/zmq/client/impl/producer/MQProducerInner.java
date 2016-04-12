@@ -4,7 +4,7 @@ import java.util.Set;
 
 import com.ztesoft.zsmart.zmq.client.producer.TransactionCheckListener;
 import com.ztesoft.zsmart.zmq.common.message.MessageExt;
-import com.ztesoft.zsmart.zmq.common.protocol.header.namesrv.CheckTransactionStateRequestHeader;
+import com.ztesoft.zsmart.zmq.common.protocol.header.CheckTransactionStateRequestHeader;
 
 public interface MQProducerInner {
     Set<String> getPublishTopicList();

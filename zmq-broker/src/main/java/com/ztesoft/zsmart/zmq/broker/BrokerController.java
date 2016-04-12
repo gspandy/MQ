@@ -468,7 +468,7 @@ public class BrokerController {
     }
 
 
-    private void addDeleteTopicTask() {
+    public void addDeleteTopicTask() {
         this.scheduledExecutorService.schedule(new Runnable() {
 
             @Override
@@ -652,7 +652,7 @@ public class BrokerController {
     }
 
 
-    private String encodeAllConfig() {
+    public String encodeAllConfig() {
         StringBuilder sb = new StringBuilder();
         {
             Properties properties = MixAll.object2Properties(this.brokerConfig);
@@ -717,8 +717,8 @@ public class BrokerController {
     }
 
 
-    public DataVersion getConfigDataVersion() {
-        return configDataVersion;
+    public String getConfigDataVersion() {
+        return configDataVersion.toJson();
     }
 
 
