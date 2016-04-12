@@ -45,7 +45,6 @@ import com.ztesoft.zsmart.zmq.client.impl.MQAdminImpl;
 import com.ztesoft.zsmart.zmq.client.impl.MQClientAPIImpl;
 import com.ztesoft.zsmart.zmq.client.impl.MQClientManager;
 import com.ztesoft.zsmart.zmq.client.impl.consumer.MQConsumerInner;
-import com.ztesoft.zsmart.zmq.client.impl.consumer.ProcessQueue;
 import com.ztesoft.zsmart.zmq.client.impl.consumer.PullMessageService;
 import com.ztesoft.zsmart.zmq.client.impl.consumer.RebalanceService;
 import com.ztesoft.zsmart.zmq.client.impl.producer.DefaultMQProducerImpl;
